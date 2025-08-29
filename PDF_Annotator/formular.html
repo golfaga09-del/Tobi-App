@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Editor i Dokumenteve PDF dhe Excel</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root {
+  --main-bg: #181d23;
+  --card-bg: #232a34;
+  --accent: #1976d2;
+  --accent-dark: #0d47a1;
+  --accent-light: #42a5f5;
+  --primary: #263859;
+  --primary-dark: #1a2233;
+  --secondary: #374151;
+  --text: #e3e8ee;
+  --text-light: #b0b8c1;
+  --button-bg: linear-gradient(90deg, #1976d2 60%, #263859 100%);
+  --button-hover: linear-gradient(90deg, #263859 60%, #1976d2 100%);
+  --button-alt: linear-gradient(90deg, #232a34 60%, #1976d2 100%);
+  --shadow: 0 4px 32px rgba(25, 118, 210, 0.13);
+  --border: #263859;
+}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;}
+body{
+  background: var(--main-bg);
+  padding:32px;
+  min-height:100vh;
+  color:var(--text);
+  transition:background 0.4s;
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+}
+.container{
+  max-width:1100px;
+  margin:0 auto;
+  background:var(--card-bg);
+  border-radius:18px;
+  box-shadow:var(--shadow);
+  border:1.5px solid var(--border);
+  overflow:hidden;
+  width:100%;
+}
+.toolbar{
+  display:flex;
+  gap:14px;
+  flex-wrap:wrap;
+  padding:18px 28px;
+  background:var(--primary-dark);
+  align-items:center;
+  border-bottom:1.5px solid var(--border);
+  box-shadow:var(--shadow);
+  position:sticky;
+  top:0;
+  z-index:10;
+}
+.toolbar button,
+.toolbar label{
+  padding:12px 22px;
+  font-size:1rem;
+  border-radius:50px;
+  border:none;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-weight:500;
+  transition:background 0.18s,box-shadow 0.18s, border 0.18s;
+  box-shadow:0 1px 4px #1976d21a;
+  background:var(--button-bg);
+  color:white;
+  border: 1.5px solid var(--border);
+}
+.toolbar .tool-button{
+  background:var(--button-bg);
+  color:white;
+  border: 1.5px solid var(--border);
+}
+.toolbar .tool-button.active{
+  background:var(--button-hover);
+  color:var(--accent-light);
+  border: 1.5px solid var(--accent-light);
+}
+.toolbar .btn{
+  background:var(--button-alt);
+  color:var(--accent-light);
+  border: 1.5px solid var(--accent);
+}
+.toolbar .btn:hover,
+.toolbar .tool-button:hover{
+  background:var(--button-hover);
+  color:#fff;
+  box-shadow:0 2px 10px #1976d22a;
+  border-color: var(--accent-light);
+}
+.file-name{
+  font-size:1rem;
+  font-weight:600;
+  max-width:160px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:var(--accent-light);
+  background:rgba(25,118,210,0.08);
+  padding:6px 14px;
+  border-radius:8px;
+  margin-left:8px;
+}
+input[type="file"]{
+  display:none;
+}
+.editor-container{
+  position:relative;
+  padding:32px 24px 32px 24px;
+  min-height:600px;
+  overflow:auto;
+  background:var(--main-bg);
+}
+.document-preview{
+  position:relative;
+  overflow:auto;
+  border:1.5px solid var(--border);
+  border-radius:14px;
+  background:var(--primary-dark);
+  padding:18px;
+  box-shadow:0 2px 12px #1976d21a;
+  min-height:480px;
+}
+.document-content{
+  width:100%;
+  min-height:100%;
+  position:relative;
+  padding:24px 10px;
+  text-align:center;
+  color:var(--accent-light);
+}
+.document-content h1{
+  font-size:2.2rem;
+  font-weight:700;
+  margin-bottom:12px;
+  color:var(--accent-light);
+}
+.document-content p{
+  font-size:1.15rem;
+  color:var(--text-light);
+}
+.signature-container,
+.draggable-text{
+  position:absolute;
+  cursor:move;
+  z-index:20;
+  background:rgba(35,42,52,0.95);
+  min-width:80px;
+  min-height:20px;
+  padding:2px 4px;
+  border-radius:8px;
+  border:1.5px dashed var(--accent);
+  font-size:1.05rem;
+  color:var(--accent-light);
+  box-shadow:0 1px 4px #1976d21a;
+  transition:border 0.2s,box-shadow 0.2s;
+}
+.signature-container img{
+  max-width:100%;
+  max-height:100%;
+  pointer-events:none;
+}
+.overlay{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  background:rgba(0,0,0,0.6);z-index:999;display:none;
+}
+.signature-pad{
+  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+  background:var(--primary-dark);padding:18px 24px;border-radius:14px;
+  box-shadow:0 0 24px #1976d22a;
+  z-index:1000;display:none;width:370px;
+}
+#signature-canvas{
+  width:100%;height:150px;
+  border:1.5px solid var(--accent);
+  border-radius:8px;
+  background:var(--card-bg);
+}
+.signature-pad h3{
+  color:var(--accent-light);
+  margin-bottom:10px;
+  font-size:1.2rem;
+}
+.signature-pad .btn{
+  margin:6px 4px 0 0;
+  background:var(--button-bg);
+  color:white;
+  border:none;
+  font-size:1rem;
+  border-radius:50px;
+  padding:8px 18px;
+}
+.signature-pad .btn:hover{
+  background:var(--button-hover);
+  filter:brightness(1.08);
+}
+::-webkit-scrollbar{width:10px;background:var(--primary-dark);}
+::-webkit-scrollbar-thumb{background:var(--accent);border-radius:8px;}
+@media (max-width:900px){
+  .container{max-width:98vw;}
+  .editor-container{padding:10px;}
+}
+@media (max-width:600px){
+  .toolbar{flex-direction:column;gap:10px;padding:10px 8px;}
+  .editor-container{padding:6px;}
+  .document-preview{padding:6px;}
+}
+@media print {
+  body{background:white;padding:0;display:block;}
+  .toolbar{display:none;}
+  .container{box-shadow:none;border:none;}
+  .editor-container{padding:0;}
+  .document-preview{
+    position:relative;
+    width:210mm;
+    height:297mm;
+    margin:0 auto;
+    padding:10mm;
+    box-sizing:border-box;
+    background:white;
+    overflow:visible;
+    border:none;
+    box-shadow:none;
+    border-radius:0;
+  }
+  #pdf-container canvas,
+  #excel-container div,
+  .document-content,
+  #drawing-canvas,
+  .signature-container,
+  .draggable-text {
+    max-width:100%;
+    max-height:100%;
+    page-break-inside:avoid;
+  }
+  .signature-container,
+  .draggable-text{
+    border:1px dashed #1976d2 !important;
+    background:rgba(255,255,255,0.95) !important;
+    color:#181d23 !important;
+    box-shadow:none !important;
+  }
+}
+.tooltip {
+  position: relative;
+  display: inline-block;
+}
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 140px;
+  background: var(--accent);
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 7px 0;
+  position: absolute;
+  z-index: 1;
+  bottom: 125%; left: 50%; transform: translateX(-50%);
+  opacity: 0; transition: opacity 0.2s;
+  font-size:0.95rem;
+  box-shadow:0 2px 8px #1976d21a;
+}
+.tooltip:hover .tooltiptext {visibility: visible;opacity: 1;}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.12.313/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+<div class="container">
+<div class="toolbar">
+    <label class="btn tooltip" id="browse-btn"><i class="fas fa-folder-open"></i> Zgjidh Dokument
+      <input type="file" id="file-input" accept=".pdf,.xlsx,.xls">
+      <span class="tooltiptext">Ngarko PDF ose Excel</span>
+    </label>
+    <span class="file-name" id="file-name">Asnjë dokument</span>
+    <button class="tool-button active tooltip" data-tool="select"><i class="fas fa-mouse-pointer"></i> Selekto
+      <span class="tooltiptext">Lëviz ose selekto elemente</span>
+    </button>
+    <button class="tool-button tooltip" data-tool="text"><i class="fas fa-font"></i> Tekst
+      <span class="tooltiptext">Shto tekst të lëvizshëm</span>
+    </button>
+    <button class="tool-button tooltip" data-tool="pen"><i class="fas fa-pen"></i> Laps
+      <span class="tooltiptext">Vizato me laps</span>
+    </button>
+    <button class="tool-button tooltip" data-tool="highlight"><i class="fas fa-highlighter"></i> Thekso
+      <span class="tooltiptext">Thekso pjesë të dokumentit</span>
+    </button>
+    <button class="tool-button tooltip" data-tool="eraser"><i class="fas fa-eraser"></i> Fshij
+      <span class="tooltiptext">Fshij vizatimet</span>
+    </button>
+    <button class="tool-button tooltip" data-tool="signature"><i class="fas fa-signature"></i> Nënshkrim
+      <span class="tooltiptext">Shto nënshkrim të lëvizshëm</span>
+    </button>
+    <button class="btn tooltip" id="save-btn"><i class="fas fa-save"></i> Ruaj
+      <span class="tooltiptext">Ruaj ndryshimet</span>
+    </button>
+    <button class="btn tooltip" id="reset-btn"><i class="fas fa-undo"></i> Rikthe
+      <span class="tooltiptext">Rikthe dokumentin</span>
+    </button>
+    <button class="btn tooltip" id="print-btn"><i class="fas fa-print"></i> Print Preview
+      <span class="tooltiptext">Shiko ose printo dokumentin</span>
+    </button>
+</div>
+
+<div class="editor-container">
+    <div class="document-preview" id="document-preview">
+        <div id="pdf-container"></div>
+        <div id="excel-container"></div>
+        <div class="document-content" id="document-content">
+            <i class="fas fa-file-alt" style="font-size:3.5rem;color:#1976d2;margin-bottom:18px;"></i>
+            <h1>Mirësevini</h1>
+            <p>Zgjidhni dokumentin për të filluar redaktimin.<br>
+            <span style="color:var(--accent-light);">Klikoni <b>Zgjidh Dokument</b> ose tërhiqni dokumentin këtu.</span>
+            </p>
+        </div>
+    </div>
+    <canvas id="drawing-canvas"></canvas>
+</div>
+
+<!-- Signature Modal -->
+<div class="overlay" id="overlay"></div>
+<div class="signature-pad" id="signature-pad">
+    <h3>Shto nënshkrimin</h3>
+    <canvas id="signature-canvas" width="350" height="150"></canvas>
+    <div style="text-align:center;margin-top:10px;">
+        <button class="btn" id="apply-signature">Shto</button>
+        <button class="btn" id="clear-signature">Pastro</button>
+        <button class="btn" id="cancel-signature">Anulo</button>
+    </div>
+</div>
+</div>
+
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.12.313/pdf.worker.min.js';
+document.addEventListener('DOMContentLoaded',()=>{
+
+const fileInput=document.getElementById('file-input');
+const browseBtn=document.getElementById('browse-btn');
+const fileName=document.getElementById('file-name');
+const documentPreview=document.getElementById('document-preview');
+const pdfContainer=document.getElementById('pdf-container');
+const excelContainer=document.getElementById('excel-container');
+const documentContent=document.getElementById('document-content');
+const drawingCanvas=document.getElementById('drawing-canvas');
+const saveBtn=document.getElementById('save-btn');
+const resetBtn=document.getElementById('reset-btn');
+const printBtn=document.getElementById('print-btn');
+const toolButtons=document.querySelectorAll('.tool-button');
+const signaturePad=document.getElementById('signature-pad');
+const signatureCanvas=document.getElementById('signature-canvas');
+const applySignature=document.getElementById('apply-signature');
+const clearSignature=document.getElementById('clear-signature');
+const cancelSignature=document.getElementById('cancel-signature');
+const overlay=document.getElementById('overlay');
+
+let currentFile=null,currentTool='select',isDrawing=false,lastX,lastY,sigDrawing=false,lastSigX,lastSigY;
+
+const ctx=drawingCanvas.getContext('2d');
+const sigCtx=signatureCanvas.getContext('2d');
+
+function resizeCanvas(){
+    drawingCanvas.width=documentPreview.scrollWidth;
+    drawingCanvas.height=documentPreview.scrollHeight;
+}
+window.addEventListener('resize',resizeCanvas);
+resizeCanvas();
+
+browseBtn.addEventListener('click',()=>fileInput.click());
+fileInput.addEventListener('change',e=>{if(e.target.files[0]) loadFile(e.target.files[0]);});
+
+// Drag & drop support
+document.body.addEventListener('dragover',e=>{e.preventDefault();});
+document.body.addEventListener('drop',e=>{
+  e.preventDefault();
+  if(e.dataTransfer.files.length) loadFile(e.dataTransfer.files[0]);
+});
+
+saveBtn.addEventListener('click',()=>alert('Dokumenti u ruajt!'));
+resetBtn.addEventListener('click',()=>{
+    ctx.clearRect(0,0,drawingCanvas.width,drawingCanvas.height);
+    document.querySelectorAll('.signature-container,.draggable-text').forEach(el=>el.remove());
+});
+printBtn.addEventListener('click',()=>{window.scrollTo(0,0); window.print();});
+
+toolButtons.forEach(button=>{
+    button.addEventListener('click',()=>{
+        currentTool=button.dataset.tool;
+        toolButtons.forEach(btn=>btn.classList.remove('active'));
+        button.classList.add('active');
+        drawingCanvas.style.display=(currentTool==='pen'||currentTool==='highlight')?'block':'none';
+        if(currentTool==='signature') openSignaturePad();
+        else if(currentTool==='text') addDraggableText();
+    });
+});
+
+function loadFile(file){
+    currentFile=file;
+    fileName.textContent=file.name;
+    const ext=file.name.split('.').pop().toLowerCase();
+    documentContent.style.display='none';
+    if(ext==='pdf'){loadPDF(file);}
+    else if(ext==='xls'||ext==='xlsx'){loadExcel(file);}
+    else{alert('Format jo i suportuar');documentContent.style.display='block';}
+}
+
+function loadPDF(file){
+    pdfContainer.innerHTML='';pdfContainer.style.display='block';excelContainer.style.display='none';
+    const reader=new FileReader();
+    reader.onload=function(){
+        const typedarray=new Uint8Array(this.result);
+        pdfjsLib.getDocument(typedarray).promise.then(pdf=>{
+            for(let p=1;p<=pdf.numPages;p++){
+                pdf.getPage(p).then(page=>{
+                    const scale=1.2;
+                    const viewport=page.getViewport({scale});
+                    const canvas=document.createElement('canvas');
+                    canvas.width=viewport.width;
+                    canvas.height=viewport.height;
+                    const ctx2=canvas.getContext('2d');
+                    page.render({canvasContext:ctx2,viewport}).promise.then(()=>{pdfContainer.appendChild(canvas);resizeCanvas();});
+                });
+            }
+        });
+    };
+    reader.readAsArrayBuffer(file);
+}
+
+function loadExcel(file){
+    const reader=new FileReader();
+    reader.onload=function(e){
+        const data=e.target.result;
+        const workbook=XLSX.read(data,{type:'binary'});
+        excelContainer.innerHTML='';excelContainer.style.display='block';pdfContainer.style.display='none';
+        workbook.SheetNames.forEach(sheetName=>{
+            const html=XLSX.utils.sheet_to_html(workbook.Sheets[sheetName]);
+            const div=document.createElement('div');div.innerHTML=html;excelContainer.appendChild(div);
+        });
+        resizeCanvas();
+    };
+    reader.readAsBinaryString(file);
+}
+
+drawingCanvas.addEventListener('mousedown',e=>{
+    if(currentTool==='pen'||currentTool==='highlight'){
+        isDrawing=true;lastX=e.offsetX;lastY=e.offsetY;ctx.beginPath();ctx.moveTo(lastX,lastY);
+        ctx.strokeStyle=(currentTool==='pen')?varAccentLight():'#42a5f5';ctx.lineWidth=(currentTool==='pen')?2:12;
+    }
+});
+drawingCanvas.addEventListener('mousemove',e=>{
+    if(!isDrawing) return;
+    ctx.lineTo(e.offsetX,e.offsetY);ctx.stroke();lastX=e.offsetX;lastY=e.offsetY;
+});
+drawingCanvas.addEventListener('mouseup',()=>isDrawing=false);
+drawingCanvas.addEventListener('mouseout',()=>isDrawing=false);
+
+function varAccentLight() {
+    return getComputedStyle(document.documentElement).getPropertyValue('--accent-light').trim() || '#42a5f5';
+}
+
+function openSignaturePad(){signaturePad.style.display='block';overlay.style.display='block';sigCtx.clearRect(0,0,signatureCanvas.width,signatureCanvas.height);}
+cancelSignature.addEventListener('click',()=>{signaturePad.style.display='none';overlay.style.display='none';});
+clearSignature.addEventListener('click',()=>sigCtx.clearRect(0,0,signatureCanvas.width,signatureCanvas.height));
+
+signatureCanvas.addEventListener('mousedown',e=>{sigDrawing=true;lastSigX=e.offsetX;lastSigY=e.offsetY;});
+signatureCanvas.addEventListener('mousemove',e=>{if(!sigDrawing)return;sigCtx.beginPath();sigCtx.moveTo(lastSigX,lastSigY);sigCtx.lineTo(e.offsetX,e.offsetY);sigCtx.strokeStyle=varAccentLight();sigCtx.lineWidth=2;sigCtx.stroke();lastSigX=e.offsetX;lastSigY=e.offsetY;});
+signatureCanvas.addEventListener('mouseup',()=>sigDrawing=false);
+signatureCanvas.addEventListener('mouseout',()=>sigDrawing=false);
+
+applySignature.addEventListener('click',()=>{
+    const imgData=signatureCanvas.toDataURL();
+    const sigDiv=document.createElement('div');
+    sigDiv.className='signature-container';
+    const img=document.createElement('img');
+    img.src=imgData;
+    sigDiv.appendChild(img);
+    sigDiv.style.top='20px';
+    sigDiv.style.left='20px';
+    documentPreview.appendChild(sigDiv);
+    makeDraggable(sigDiv);
+    signaturePad.style.display='none';overlay.style.display='none';
+});
+
+function makeDraggable(el){
+    let dragging=false,offsetX,offsetY;
+    el.addEventListener('mousedown',e=>{dragging=true;offsetX=e.offsetX;offsetY=e.offsetY;el.style.border='2px dashed var(--accent)';});
+    document.addEventListener('mousemove',e=>{if(!dragging) return; const rect=documentPreview.getBoundingClientRect();el.style.left=(e.clientX-rect.left-offsetX+documentPreview.scrollLeft)+'px';el.style.top=(e.clientY-rect.top-offsetY+documentPreview.scrollTop)+'px';});
+    document.addEventListener('mouseup',()=>{dragging=false;el.style.border='1.5px dashed var(--accent)';});
+}
+
+function addDraggableText(defaultText='Shkruaj këtu'){
+    const textDiv=document.createElement('div');
+    textDiv.className='draggable-text';
+    textDiv.contentEditable=true;
+    textDiv.innerText=defaultText;
+    textDiv.style.top='50%';
+    textDiv.style.left='50%';
+    textDiv.style.transform='translate(-50%,-50%)';
+    documentPreview.appendChild(textDiv);
+    makeDraggable(textDiv);
+}
+
+// Print Preview A4 me margjina dhe fillim nga faqja e pare
+window.onbeforeprint = function(){
+    const preview = documentPreview;
+    const maxWidth = 210 - 2*10; // 210mm minus 10mm margjinat
+    const maxHeight = 297 - 2*10; // 297mm minus margjinat
+    const pxPerMm = 3.78;
+
+    // skalo canvas
+    const canvases = preview.querySelectorAll('canvas');
+    canvases.forEach(canvas=>{
+        const ratio = Math.min(maxWidth*pxPerMm/canvas.width, maxHeight*pxPerMm/canvas.height);
+        canvas.style.width = canvas.width*ratio+'px';
+        canvas.style.height = canvas.height*ratio+'px';
+    });
+
+    // skalo nënshkrimet dhe tekstet
+    const elements = preview.querySelectorAll('.draggable-text, .signature-container');
+    elements.forEach(el=>{
+        const scale = Math.min(maxWidth*pxPerMm/preview.scrollWidth, maxHeight*pxPerMm/preview.scrollHeight);
+        el.style.transform=`translate(-50%,-50%) scale(${scale})`;
+    });
+
+    // fillo nga krye
+    window.scrollTo(0,0);
+};
+
+window.onafterprint = function() {
+    document.querySelectorAll('#document-preview canvas').forEach(c=>{c.style.width='';c.style.height='';});
+    document.querySelectorAll('.draggable-text, .signature-container').forEach(el=>{el.style.transform='translate(-50%,-50%)';});
+};
+
+});
+</script>
+</body>
+</html>

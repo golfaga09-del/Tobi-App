@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Album i Fotove - Modern</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --main-bg: #181d23;
+      --card-bg: #232a34;
+      --accent: #1976d2;
+      --accent-dark: #0d47a1;
+      --accent-light: #42a5f5;
+      --primary: #263859;
+      --primary-dark: #1a2233;
+      --secondary: #374151;
+      --text: #e3e8ee;
+      --text-light: #b0b8c1;
+      --button-bg: linear-gradient(90deg, #1976d2 60%, #263859 100%);
+      --button-hover: linear-gradient(90deg, #263859 60%, #1976d2 100%);
+      --button-alt: linear-gradient(90deg, #232a34 60%, #1976d2 100%);
+      --shadow: 0 4px 32px rgba(25, 118, 210, 0.13);
+      --border: #263859;
+      --caption-bg: #232a34;
+      --caption-focus: #263859;
+      --number-bg: #1976d2;
+      --number-color: #fff;
+    }
+    *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;}
+    body{
+      background: var(--main-bg);
+      display:flex;justify-content:center;align-items:flex-start;
+      padding:32px;min-height:100vh;color:var(--text);
+      transition:background 0.4s;
+    }
+    .toolbar{
+      position:fixed;top:24px;left:50%;transform:translateX(-50%);
+      background:var(--primary-dark);
+      padding:18px 28px;border-radius:16px;
+      box-shadow:var(--shadow);
+      display:flex;gap:16px;z-index:999;
+      border:1.5px solid var(--border);
+      animation:fadeInDown 0.7s;
+    }
+    @keyframes fadeInDown {
+      from { opacity:0; transform:translate(-50%,-30px);}
+      to { opacity:1; transform:translate(-50%,0);}
+    }
+    .toolbar button,label{
+      padding:12px 22px;border:none;border-radius:50px;cursor:pointer;
+      display:flex;align-items:center;gap:8px;font-size:1rem;
+      font-weight:500;transition:background 0.18s,box-shadow 0.18s, border 0.18s;
+      box-shadow:0 1px 4px #1976d21a;
+      background:var(--button-bg);
+      color:white;
+      border: 1.5px solid var(--border);
+    }
+    .upload-btn{
+      background:var(--button-bg);
+      color:white;position:relative;overflow:hidden;
+      border: 1.5px solid var(--border);
+    }
+    .upload-btn input{position:absolute;left:0;top:0;width:100%;height:100%;opacity:0;cursor:pointer;}
+    .clear-btn{
+      background:var(--button-alt);
+      color:var(--accent-light);
+      border: 1.5px solid var(--accent);
+    }
+    .clear-btn:hover{background:var(--button-hover);color:#fff;border-color:var(--accent-light);}
+    .preview-btn{
+      background:var(--button-bg);
+      color:white;
+      border: 1.5px solid var(--border);
+    }
+    .preview-btn:hover{background:var(--button-hover);color:#fff;border-color:var(--accent-light);}
+    .pages-container{display:flex;flex-direction:column;gap:32px;margin-top:90px;}
+    .page{
+      width:820px; min-height:1160px; background:var(--card-bg);
+      padding:28px; display:grid;
+      grid-template-columns:repeat(2,1fr); grid-template-rows:repeat(3,1fr);
+      gap:22px;box-shadow:var(--shadow);border-radius:18px;
+      border:1.5px solid var(--border);position:relative;
+      animation:fadeIn 0.7s;
+    }
+    @keyframes fadeIn {
+      from { opacity:0; transform:scale(0.97);}
+      to { opacity:1; transform:scale(1);}
+    }
+    .page::after {
+      content: attr(data-page);
+      position: absolute; bottom: 18px; right: 32px;
+      font-size: 1.1rem; color: var(--accent-light); opacity: 0.7;
+      font-weight: 600; letter-spacing: 1px;
+    }
+    .photo-card{
+      position:relative;overflow:hidden;border-radius:14px;
+      display:flex;flex-direction:column;
+      background:var(--primary-dark);
+      box-shadow:0 2px 12px #1976d21a;
+      transition:box-shadow 0.2s,transform 0.18s;
+      border:1.5px solid var(--border);
+      min-height:0;
+    }
+    .photo-card:hover{
+      box-shadow:0 4px 24px #1976d22a;
+      transform:translateY(-2px) scale(1.01);
+      border-color:var(--accent-light);
+    }
+    .photo-card img{
+      width:100%;height:calc(100% - 38px);object-fit:cover;flex-grow:1;
+      border-radius:14px 14px 0 0;
+      background:var(--secondary);
+      transition:filter 0.2s;
+    }
+    .photo-card img:hover{filter:brightness(0.97) saturate(1.1);}
+    .photo-number{
+      position:absolute;top:10px;left:10px;
+      background:var(--number-bg);color:var(--number-color);
+      border-radius:50%;width:32px;height:32px;
+      display:flex;align-items:center;justify-content:center;
+      font-weight:bold;font-size:1rem;z-index:2;
+      box-shadow:0 1px 4px #1976d21a;
+      border:2px solid var(--primary-dark);
+    }
+    .photo-caption{
+      padding:7px 10px 7px 42px;font-size:1rem;color:var(--accent-light);
+      text-align:left;background:var(--caption-bg);outline:none;
+      min-height:28px;transition:background 0.2s;
+      border-radius:0 0 14px 14px;
+      border-top:1px solid var(--border);
+      margin-top:-2px;
+      cursor:text;
+    }
+    .photo-caption:focus{background:var(--caption-focus);}
+    .photo-caption[placeholder]:empty:before {
+      content: attr(placeholder);
+      color: #b0b8c1;
+      font-style:italic;
+    }
+    ::-webkit-scrollbar{width:10px;background:var(--primary-dark);}
+    ::-webkit-scrollbar-thumb{background:var(--accent);border-radius:8px;}
+    @media (max-width:900px){
+      .page{width:98vw;min-width:0;}
+      .pages-container{margin-top:110px;}
+    }
+    @media (max-width:600px){
+      .toolbar{flex-direction:column;gap:10px;padding:10px 8px;}
+      .page{padding:8px;}
+    }
+    .tooltip {
+      position: relative;
+      display: inline-block;
+    }
+    .tooltip .tooltiptext {
+      visibility: hidden;
+      width: 140px;
+      background: var(--accent);
+      color: #fff;
+      text-align: center;
+      border-radius: 6px;
+      padding: 7px 0;
+      position: absolute;
+      z-index: 1;
+      bottom: 125%; left: 50%; transform: translateX(-50%);
+      opacity: 0; transition: opacity 0.2s;
+      font-size:0.95rem;
+      box-shadow:0 2px 8px #1976d21a;
+    }
+    .tooltip:hover .tooltiptext {visibility: visible;opacity: 1;}
+    
+    /* PRINT & PDF: White background but keep all other styling */
+    @media print {
+      body {
+        background: white !important;
+        padding: 0 !important;
+        display: block !important;
+        width: 100% !important;
+        height: auto !important;
+      }
+      .toolbar {
+        display: none !important;
+      }
+      .pages-container {
+        margin-top: 0 !important;
+        display: block !important;
+        width: 100% !important;
+        height: auto !important;
+        background: white !important;
+        padding: 0 !important;
+      }
+      .page {
+        width: 210mm !important;
+        min-height: 297mm !important;
+        max-width: 210mm !important;
+        max-height: 297mm !important;
+        background: white !important;
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        grid-template-rows: 1fr 1fr 1fr !important;
+        gap: 22px !important;
+        box-shadow: 0 4px 32px rgba(0, 0, 0, 0.1) !important;
+        border-radius: 18px !important;
+        border: 1.5px solid #ddd !important;
+        padding: 28px !important;
+        margin: 0 auto 32px auto !important;
+        page-break-after: always;
+        box-sizing: border-box !important;
+        position: relative !important;
+      }
+      .photo-card {
+        background: #f8f9fa !important;
+        border-radius: 14px !important;
+        border: 1.5px solid #ddd !important;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08) !important;
+        overflow: hidden !important;
+        position: relative !important;
+        display: flex !important;
+        flex-direction: column !important;
+        min-height: 0 !important;
+        min-width: 0 !important;
+      }
+      .photo-card img {
+        width: 100% !important;
+        height: calc(100% - 38px) !important;
+        object-fit: cover !important;
+        border-radius: 14px 14px 0 0 !important;
+        background: #f1f3f5 !important;
+        margin: 0 !important;
+        display: block !important;
+        filter: none !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .photo-number {
+        position: absolute !important;
+        top: 10px !important;
+        left: 10px !important;
+        background: #1976d2 !important;
+        color: white !important;
+        border-radius: 50% !important;
+        width: 32px !important;
+        height: 32px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-weight: bold !important;
+        font-size: 1rem !important;
+        z-index: 2 !important;
+        border: 2px solid #f8f9fa !important;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1) !important;
+      }
+      .photo-caption {
+        padding: 7px 10px 7px 42px !important;
+        font-size: 1rem !important;
+        color: #1976d2 !important;
+        text-align: left !important;
+        background: white !important;
+        outline: none !important;
+        min-height: 28px !important;
+        border-radius: 0 0 14px 14px !important;
+        border-top: 1.5px solid #ddd !important;
+        margin-top: 0 !important;
+        cursor: text !important;
+        box-shadow: none !important;
+        width: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+      }
+      .page::after {
+        content: attr(data-page) !important;
+        position: absolute !important;
+        bottom: 18px !important;
+        right: 32px !important;
+        font-size: 1.1rem !important;
+        color: #1976d2 !important;
+        opacity: 0.7 !important;
+        font-weight: 600 !important;
+        letter-spacing: 1px !important;
+      }
+      ::-webkit-scrollbar {
+        display: none !important;
+      }
+    }
+    
+    /* PDF export mode - White background but keep all other styling */
+    body.print-mode {
+      background: white !important;
+      padding: 0 !important;
+      display: block !important;
+      width: 100% !important;
+      height: auto !important;
+    }
+    body.print-mode .toolbar {
+      display: none !important;
+    }
+    body.print-mode .pages-container {
+      margin-top: 0 !important;
+      display: block !important;
+      width: 100% !important;
+      height: auto !important;
+      background: white !important;
+      padding: 0 !important;
+    }
+    body.print-mode .page {
+      width: 210mm !important;
+      min-height: 297mm !important;
+      max-width: 210mm !important;
+      max-height: 297mm !important;
+      background: white !important;
+      display: grid !important;
+      grid-template-columns: 1fr 1fr !important;
+      grid-template-rows: 1fr 1fr 1fr !important;
+      gap: 22px !important;
+      box-shadow: 0 4px 32px rgba(0, 0, 0, 0.1) !important;
+      border-radius: 18px !important;
+      border: 1.5px solid #ddd !important;
+      padding: 28px !important;
+      margin: 0 auto 32px auto !important;
+      box-sizing: border-box !important;
+      position: relative !important;
+    }
+    body.print-mode .photo-card {
+      background: #f8f9fa !important;
+      border-radius: 14px !important;
+      border: 1.5px solid #ddd !important;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08) !important;
+      overflow: hidden !important;
+      position: relative !important;
+      display: flex !important;
+      flex-direction: column !important;
+      min-height: 0 !important;
+      min-width: 0 !important;
+    }
+    body.print-mode .photo-card img {
+      width: 100% !important;
+      height: calc(100% - 38px) !important;
+      object-fit: cover !important;
+      border-radius: 14px 14px 0 0 !important;
+      background: #f1f3f5 !important;
+      margin: 0 !important;
+      display: block !important;
+      filter: none !important;
+    }
+    body.print-mode .photo-number {
+      position: absolute !important;
+      top: 10px !important;
+      left: 10px !important;
+      background: #1976d2 !important;
+      color: white !important;
+      border-radius: 50% !important;
+      width: 32px !important;
+      height: 32px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      font-weight: bold !important;
+      font-size: 1rem !important;
+      z-index: 2 !important;
+      border: 2px solid #f8f9fa !important;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1) !important;
+    }
+    body.print-mode .photo-caption {
+      padding: 7px 10px 7px 42px !important;
+      font-size: 1rem !important;
+      color: #1976d2 !important;
+      text-align: left !important;
+      background: white !important;
+      outline: none !important;
+      min-height: 28px !important;
+      border-radius: 0 0 14px 14px !important;
+      border-top: 1.5px solid #ddd !important;
+      margin-top: 0 !important;
+      cursor: text !important;
+      box-shadow: none !important;
+      width: 100% !important;
+      display: flex !important;
+      align-items: center !important;
+    }
+    body.print-mode .page::after {
+      content: attr(data-page) !important;
+      position: absolute !important;
+      bottom: 18px !important;
+      right: 32px !important;
+      font-size: 1.1rem !important;
+      color: #1976d2 !important;
+      opacity: 0.7 !important;
+      font-weight: 600 !important;
+      letter-spacing: 1px !important;
+    }
+    body.print-mode ::-webkit-scrollbar {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <label class="upload-btn tooltip"><i class="fas fa-cloud-upload-alt"></i> Publiko Foto
+      <input type="file" id="fileInput" multiple accept="image/*">
+      <span class="tooltiptext">Ngarko shumë foto njëherësh</span>
+    </label>
+    <button class="clear-btn tooltip" id="clearAllBtn"><i class="fas fa-trash"></i> Pastro të Gjitha
+      <span class="tooltiptext">Hiq të gjitha fotot</span>
+    </button>
+    <button class="preview-btn tooltip" id="printPreviewBtn"><i class="fas fa-eye"></i> Print Preview
+      <span class="tooltiptext">Shiko ose printo faqet</span>
+    </button>
+    <button class="preview-btn tooltip" id="savePdfBtn"><i class="fas fa-file-pdf"></i> Ruaj në PDF
+      <span class="tooltiptext">Eksporto albumin si PDF</span>
+    </button>
+  </div>
+  <div class="pages-container" id="pagesContainer"></div>
+  <script>
+    document.addEventListener('DOMContentLoaded', function(){
+      const pagesContainer = document.getElementById('pagesContainer');
+      const fileInput = document.getElementById('fileInput');
+      const clearAllBtn = document.getElementById('clearAllBtn');
+      const printPreviewBtn = document.getElementById('printPreviewBtn');
+      const savePdfBtn = document.getElementById('savePdfBtn');
+      let photos = [];
+
+      function renderPages(){
+        pagesContainer.innerHTML='';
+        const photosPerPage = 6;
+        for(let p=0;p<Math.ceil(photos.length/photosPerPage);p++){
+          const pageDiv = document.createElement('div');
+          pageDiv.className='page';
+          pageDiv.setAttribute('data-page', `Faqe ${p+1}`);
+          const start = p*photosPerPage;
+          const end = start + photosPerPage;
+          const photosThisPage = photos.slice(start,end);
+          photosThisPage.forEach((photo,index)=>{
+            const photoCard = document.createElement('div');
+            photoCard.className='photo-card';
+            photoCard.innerHTML=`
+              <div class="photo-number">${start+index+1}</div>
+              <img src="${photo.src}" alt="Foto ${start+index+1}">
+              <div class="photo-caption" contenteditable="true" data-index="${start+index}" spellcheck="false" placeholder="Shto koment për këtë foto...">${photo.caption||''}</div>
+            `;
+            pageDiv.appendChild(photoCard);
+          });
+          pagesContainer.appendChild(pageDiv);
+        }
+        // Add event listeners for editable captions
+        document.querySelectorAll('.photo-caption').forEach(caption=>{
+          caption.addEventListener('input',function(e){
+            const idx = parseInt(this.getAttribute('data-index'));
+            photos[idx].caption = this.innerText;
+          });
+        });
+      }
+
+      function addUploadedPhotos(files){
+        Array.from(files).forEach(file=>{
+          if(!file.type.startsWith('image/')) return;
+          const reader = new FileReader();
+          reader.onload=function(e){
+            photos.push({src:e.target.result, caption:''});
+            renderPages();
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+
+      function clearAllPhotos(){
+        if(confirm("Jeni i sigurt që doni të hiqni të gjitha fotot?")) {
+          photos=[]; renderPages();
+        }
+      }
+
+      function printPreview(){
+        if(photos.length === 0) {
+          window.print();
+          return;
+        }
+        // Ensure the layout matches the dashboard exactly
+        document.body.classList.add('print-mode');
+        window.print();
+        setTimeout(()=>document.body.classList.remove('print-mode'), 1000);
+      }
+
+      // Export album as PDF with identical layout to dashboard
+      function saveAsPDF() {
+        if(photos.length === 0) return;
+        // Dynamically load html2pdf
+        import('https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js')
+        .then(() => {
+          // Add class for clean styling during export
+          document.body.classList.add('print-mode');
+          
+          // Fix for image rendering issues in PDF
+          const opt = {
+            margin: 0,
+            filename: 'albumi-fotove.pdf',
+            image: { 
+              type: 'jpeg', 
+              quality: 1.0 // Maximum quality
+            },
+            html2canvas: { 
+              scale: 2, 
+              backgroundColor: '#ffffff',
+              useCORS: true,
+              logging: false,
+              onclone: function(clonedDoc) {
+                // Ensure all images are fully loaded before capturing
+                const images = clonedDoc.querySelectorAll('img');
+                let loadedCount = 0;
+                const totalImages = images.length;
+                
+                if (totalImages === 0) return;
+                
+                return new Promise(resolve => {
+                  images.forEach(img => {
+                    if (img.complete) {
+                      loadedCount++;
+                    } else {
+                      img.onload = () => {
+                        loadedCount++;
+                        if (loadedCount === totalImages) resolve();
+                      };
+                    }
+                  });
+                  
+                  // Fallback in case some images don't load
+                  setTimeout(resolve, 3000);
+                });
+              }
+            },
+            jsPDF: { 
+              unit: 'mm', 
+              format: 'a4', 
+              orientation: 'portrait' 
+            }
+          };
+          
+          // Create PDF
+          html2pdf().set(opt).from(pagesContainer).save().then(() => {
+            document.body.classList.remove('print-mode');
+          });
+        });
+      }
+
+      fileInput.addEventListener('change',(e)=> addUploadedPhotos(e.target.files));
+      clearAllBtn.addEventListener('click', clearAllPhotos);
+      printPreviewBtn.addEventListener('click', printPreview);
+      savePdfBtn.addEventListener('click', saveAsPDF);
+
+      // Drag & drop support
+      document.body.addEventListener('dragover',e=>{e.preventDefault();});
+      document.body.addEventListener('drop',e=>{
+        e.preventDefault();
+        if(e.dataTransfer.files.length) addUploadedPhotos(e.dataTransfer.files);
+      });
+
+      // Welcome message if no photos
+      function showWelcome(){
+        if(photos.length===0){
+          pagesContainer.innerHTML = `
+            <div style="margin:80px auto;text-align:center;max-width:500px;color:var(--accent-light);opacity:0.85;">
+              <i class="fas fa-images" style="font-size:3.5rem;color:var(--accent);margin-bottom:18px;"></i>
+              <h2 style="font-weight:700;margin-bottom:10px;">Mirësevini në Albumin Tuaj!</h2>
+              <p style="font-size:1.15rem;margin-bottom:18px;">
+                Publikoni fotot tuaja të preferuara, shtoni komente personale dhe krijoni një album të bukur për printim ose PDF.<br>
+                <span style="color:var(--accent-light);">Klikoni <b>Publiko Foto</b> ose tërhiqni fotot këtu për të filluar.</span>
+              </p>
+            </div>
+          `;
+        }
+      }
+      // Initial
+      showWelcome();
+      // Re-show welcome if cleared
+      const origRenderPages = renderPages;
+      renderPages = function(){
+        origRenderPages();
+        showWelcome();
+      };
+    });
+  </script>
+</body>
+</html>
